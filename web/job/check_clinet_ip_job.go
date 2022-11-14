@@ -204,11 +204,11 @@ func updateInboundClientIps(inboundClientIps *model.InboundClientIps, clientEmai
 		if client.Email == clientEmail {
 
 			limitIp := client.LimitIP
-
+			logger.Debug(client.Email)
 			if limitIp < len(ips) && limitIp != 0 && inbound.Enable {
 
-				//disAllowedIps = append(disAllowedIps,ips[limitIp:]...)
-				DisableInbound(inbound.Id)
+				disAllowedIps = append(disAllowedIps, ips[limitIp:]...)
+				DisableUser(inbound.Id, client.ID)
 			}
 		}
 	}
@@ -235,6 +235,33 @@ func DisableInbound(id int) error {
 	}
 
 	return err
+}
+
+func DisableUser(id int, UUID string) error {
+	db := database.GetDB()
+	var inbounds *model.Inbound
+
+	err := db.Model(model.Inbound{}).Where("id = ? and enable = ?", id, true).Find(&inbounds).Error
+
+	if err != nil {
+		logger.Warning("error in disabling user")
+		return err
+	}
+	setting := inbounds.Settings
+	newsetting := strings.Replace(setting, UUID, "_"+UUID, -1)
+	result := db.Model(model.Inbound{}).
+		Where("id = ? and enable = ?", id, true).
+		Update("Settings", newsetting)
+
+	err2 := result.Error
+
+	logger.Warning("disable user with id:", UUID)
+
+	if err2 == nil {
+		job.xrayService.SetToNeedRestart()
+	}
+
+	return err2
 }
 
 func GetInboundByEmail(clientEmail string) (*model.Inbound, error) {
