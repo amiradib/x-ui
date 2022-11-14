@@ -241,7 +241,7 @@ func DisableUser(id int, UUID string) error {
 	db := database.GetDB()
 	var inbounds *model.Inbound
 
-	err := db.Model(model.Inbound{}).Where("id = ? and enable = ?", id, true).Find(&inbounds).Error
+	err := db.Model(model.Inbound{}).Where("id =\"? and enable = ?", id, true).Find(&inbounds).Error
 
 	if err != nil {
 		logger.Warning("error in disabling user")
@@ -258,6 +258,7 @@ func DisableUser(id int, UUID string) error {
 	logger.Warning("disable user with id:", UUID)
 
 	if err2 == nil {
+		job.xrayService.RestartXray(true)
 		job.xrayService.SetToNeedRestart()
 	}
 
