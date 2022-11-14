@@ -241,14 +241,14 @@ func DisableUser(id int, UUID string) error {
 	db := database.GetDB()
 	var inbounds *model.Inbound
 
-	err := db.Model(model.Inbound{}).Where("id =\"? and enable = ?", id, true).Find(&inbounds).Error
+	err := db.Model(model.Inbound{}).Where("id =? and enable = ?", id, true).Find(&inbounds).Error
 
 	if err != nil {
 		logger.Warning("error in disabling user")
 		return err
 	}
 	setting := inbounds.Settings
-	newsetting := strings.Replace(setting, UUID, "_"+UUID, -1)
+	newsetting := strings.Replace(setting, "\""+UUID, "\""+"_"+UUID, -1)
 	result := db.Model(model.Inbound{}).
 		Where("id = ? and enable = ?", id, true).
 		Update("Settings", newsetting)
