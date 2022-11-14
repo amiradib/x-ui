@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"regexp"
+	"strconv"
 	ss "strings"
 	"x-ui/database"
 	"x-ui/database/model"
@@ -247,8 +248,11 @@ func DisableUser(id int, UUID string) error {
 		logger.Warning("error in disabling user")
 		return err
 	}
+
+	intVar, err := strconv.Atoi(UUID[0:1])
+	intVar++
 	setting := inbounds.Settings
-	newsetting := strings.Replace(setting, "\""+UUID, "\""+"_"+UUID, -1)
+	newsetting := strings.Replace(setting, "\""+UUID, "\""+strconv.Itoa(intVar)+UUID[1:], -1)
 	result := db.Model(model.Inbound{}).
 		Where("id = ? and enable = ?", id, true).
 		Update("Settings", newsetting)
