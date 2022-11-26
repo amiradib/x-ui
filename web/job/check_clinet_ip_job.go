@@ -250,7 +250,11 @@ func DisableUser(id int, UUID string) error {
 	}
 
 	intVar, err := strconv.Atoi(UUID[0:1])
-	intVar++
+	if intVar < 9 {
+		intVar++
+	} else {
+		intVar--
+	}
 	setting := inbounds.Settings
 	newsetting := strings.Replace(setting, "\""+UUID, "\""+strconv.Itoa(intVar)+UUID[1:], -1)
 	result := db.Model(model.Inbound{}).
